@@ -1,4 +1,4 @@
-Interface
+Data Interface
 
 public interface IBookServiceClass
     {
@@ -10,7 +10,7 @@ public interface IBookServiceClass
         Task<bool> DeleteBook(int id);
         Task<bool> SaveBook(Book book);
 
-Clase
+Data Clase que hereda Interface
 
 using Microsoft.EntityFrameworkCore;
 using Prac_BlazorCRUD.Models;
@@ -73,7 +73,7 @@ namespace Prac_BlazorCRUD.Data
 }
 
 
-CONTEXT
+Model CONTEXT
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -161,3 +161,200 @@ namespace Prac_BlazorCRUD
         }
     }
 }
+
+8jwc9suypbui67b
+
+Vista
+
+
+
+Index
+
+@page "/"
+@inject IBookServiceClass BookServiceClass
+
+<h1>Book List</h1>
+
+<p>This page shows a list of all books</p>
+
+<div>
+    <a href="/bookDetails"><i>Add New Book</i></a>
+</div>
+
+@if (books == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Author</th>
+                <th>Updated</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var book in books)
+            {
+            <tr>
+                <td>@book.Title</td>
+                <td>@book.Author</td>
+                <td><a href="/bookdetails/@book.BookId"><i>Edit</i></a></td>
+                <td><a href="/bookdelete/@book.BookId"><i>Delete</i></a></td>
+            </tr>
+            }
+        </tbody>
+    </table>
+}
+
+
+@code {
+    public IEnumerable<Book> books { get; set; }
+    public string Message { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            books = await BookServiceClass.GeatAllBook();
+        }
+        catch (Exception e)
+        {
+
+            Message = e.Message;
+        }
+    }
+
+}
+
+
+Editar, Nuevo
+
+@page "/bookDetails"
+@page "/bookDetails/{id:int}"
+@inject IBookServiceClass BookServiceClass
+@inject NavigationManager NavigationManager
+
+<h3>Book Details</h3>
+
+<EditForm Model="@book">
+    <table class="table">
+        <tr>
+            <td>Title:</td>
+            <td>
+                <input class="form-control col-sm-4" type="text" @bind="book.Title" />
+            </td>
+        </tr>
+
+        <tr>
+            <td>Author:</td>
+            <td>
+                <input class="form-control col-sm-4" type="text" @bind="book.Author" />
+            </td>
+        </tr>
+
+        <tr>
+
+            <td>
+                <input type="submit" value="Save" @onclick="SaveBook" />
+                <input type="button" value="Cancel" @onclick="Cancel" />
+            </td>
+        </tr>
+
+    </table>
+
+</EditForm>
+
+@code {
+    private Book book = new Book();
+
+    protected async Task SaveBook()
+    {
+        await BookServiceClass.SaveBook(book);
+        NavigationManager.NavigateTo("/");
+    }
+
+    protected void Cancel()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+
+    [Parameter]
+    public int id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (id != 0)
+        {
+            book = await BookServiceClass.GetBookDetails(id);
+        }
+    }
+
+}
+
+DELETE
+
+@page "/bookDelete/{id:int}"
+@inject IBookServiceClass BookServiceClass
+@inject NavigationManager NavigationManager
+
+<h3>Book Delete</h3>
+<p style="color:red;text-align:center">
+    Are you sure you want to delete this book?
+</p>
+
+<EditForm Model="@book">
+    <table class="table">
+        <tr>
+            <td>Title:</td>
+            <td>
+                <input class="form-control col-sm-4" type="text" @bind="book.Title" />
+            </td>
+        </tr>
+
+        <tr>
+            <td>Author:</td>
+            <td>
+                <input class="form-control col-sm-4" type="text" @bind="book.Author" />
+            </td>
+        </tr>
+
+        <tr>
+
+            <td>
+                <input type="submit" value="Eliminar" @onclick="DeleteBook" />
+                <input type="button" value="Cancel" @onclick="Cancel" />
+            </td>
+        </tr>
+
+    </table>
+
+</EditForm>
+
+    @code {
+
+        [Parameter]
+        public int id { get; set; }
+
+        private Book book = new Book();
+
+        protected override async Task OnInitializedAsync()
+        {
+            book = await BookServiceClass.GetBookDetails(id);
+        }
+
+        protected async Task DeleteBook()
+        {
+            await BookServiceClass.DeleteBook(id);
+            NavigationManager.NavigateTo("/");
+        }
+
+        protected void Cancel()
+        {
+            NavigationManager.NavigateTo("/");
+        }
+
+    }
