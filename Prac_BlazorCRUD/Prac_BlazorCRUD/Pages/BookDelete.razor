@@ -1,0 +1,62 @@
+﻿
+@page "/bookDelete/{id:int}"
+@inject IBookServiceClass BookServiceClass
+@inject NavigationManager NavigationManager
+
+<h3>Book Delete</h3>
+<p style="color:red;text-align:center">
+    Are you sure you want to delete this book?
+</p>
+
+<EditForm Model="@book">
+    <table class="table">
+        <tr>
+            <td>Title:</td>
+            <td>
+                <input class="form-control col-sm-4" type="text" @bind="book.Title" />
+            </td>
+        </tr>
+
+        <tr>
+            <td>Author:</td>
+            <td>
+                <input class="form-control col-sm-4" type="text" @bind="book.Author" />
+            </td>
+        </tr>
+
+        <tr>
+
+            <td>
+                <input type="submit" value="Eliminar" @onclick="DeleteBook" />
+                <input type="button" value="Cancel" @onclick="Cancel" />
+            </td>
+        </tr>
+
+    </table>
+
+</EditForm>
+
+    @code {
+
+        [Parameter]
+        public int id { get; set; }
+
+        private Book book = new Book();
+
+        protected override async Task OnInitializedAsync()
+        {
+            book = await BookServiceClass.GetBookDetails(id);
+        }
+
+        protected async Task DeleteBook()
+        {
+            await BookServiceClass.DeleteBook(id);
+            NavigationManager.NavigateTo("/");
+        }
+
+        protected void Cancel()
+        {
+            NavigationManager.NavigateTo("/");
+        }
+
+    }
